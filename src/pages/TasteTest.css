@@ -1,0 +1,20 @@
+.test-container {
+  padding: 2rem;
+  text-align: center;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option-label {
+  font-size: 1.1rem;
+}
+
+.next-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 1rem;
+}
