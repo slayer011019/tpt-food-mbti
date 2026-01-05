@@ -1,9 +1,9 @@
 // src/pages/TasteTest.jsx
-import { useState } from 'react';
-import questions from '../data/questions';
-import { useNavigate } from 'react-router-dom';
-import Progress from '../components/Progress';
-import Button from '../components/Button';
+import { useState } from "react";
+import questions from "../data/questions";
+import { useNavigate } from "react-router-dom";
+import Progress from "../components/Progress";
+import Button from "../components/Button";
 
 function TasteTest() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -15,33 +15,33 @@ function TasteTest() {
     // 1) dimension/reverse 메타가 있는 경우(권장)
     const questionList = questions.slice(0, 10);
     const hasMeta = questionList.every(
-      q => typeof q.dimension === 'string' && typeof q.reverse === 'boolean'
+      (q) => typeof q.dimension === "string" && typeof q.reverse === "boolean",
     );
 
     if (hasMeta) {
       const groups = {
-        TB: { high: 'T', low: 'B' },
-        IP: { high: 'I', low: 'P' },
-        CR: { high: 'C', low: 'R' },
-        DS: { high: 'D', low: 'S' },
-        MU: { high: 'M', low: 'U' },
+        TB: { high: "T", low: "B" },
+        IP: { high: "I", low: "P" },
+        CR: { high: "C", low: "R" },
+        DS: { high: "D", low: "S" },
+        MU: { high: "M", low: "U" },
       };
 
       const bucket = { TB: [], IP: [], CR: [], DS: [], MU: [] };
 
       answersArr.forEach((raw, i) => {
         const q = questionList[i];
-        const val = q.reverse ? (6 - raw) : raw; // 역채점
+        const val = q.reverse ? 6 - raw : raw; // 역채점
         if (bucket[q.dimension]) bucket[q.dimension].push(val);
       });
 
-      let code = '';
-      (['TB', 'IP', 'CR', 'DS', 'MU']).forEach(key => {
+      let code = "";
+      ["TB", "IP", "CR", "DS", "MU"].forEach((key) => {
         const arr = bucket[key];
         const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
         if (avg > 3) code += groups[key].high;
         else if (avg < 3) code += groups[key].low;
-        else code += Math.random() < 0.5 ? groups[key].high : groups[key].low; // 타이브레이크
+        else code += groups[key].low; // avg == 3: deterministic tie-breaker
       });
       return code;
     }
@@ -49,21 +49,21 @@ function TasteTest() {
     // 2) 폴백: 인덱스 기반(메타 없을 때)
     // Q1-2: TB, Q3-4: IP, Q5-6: CR, Q7-8: DS, Q9-10: MU
     const criteriaGroups = {
-      taste:   { indices: [0, 1], high: 'T', low: 'B' },
-      planning:{ indices: [2, 3], high: 'I', low: 'P' },
-      style:   { indices: [4, 5], high: 'C', low: 'R' },
-      venture: { indices: [6, 7], high: 'D', low: 'S' },
-      culture: { indices: [8, 9], high: 'M', low: 'U' },
+      taste: { indices: [0, 1], high: "T", low: "B" },
+      planning: { indices: [2, 3], high: "I", low: "P" },
+      style: { indices: [4, 5], high: "C", low: "R" },
+      venture: { indices: [6, 7], high: "D", low: "S" },
+      culture: { indices: [8, 9], high: "M", low: "U" },
     };
 
-    let mbtiCode = '';
+    let mbtiCode = "";
     for (const group of Object.values(criteriaGroups)) {
-      const vals = group.indices.map(i => answersArr[i]);
+      const vals = group.indices.map((i) => answersArr[i]);
       const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
 
       if (avg > 3) mbtiCode += group.high;
       else if (avg < 3) mbtiCode += group.low;
-      else mbtiCode += Math.random() < 0.5 ? group.high : group.low; // 타이브레이크
+      else mbtiCode += group.low; // avg == 3: deterministic tie-breaker
     }
     return mbtiCode;
   };
@@ -79,7 +79,7 @@ function TasteTest() {
 
   const questionList = questions.slice(0, 10);
   const current = questionList[currentQuestionIndex];
-  const questionText = current?.question ?? '';
+  const questionText = current?.question ?? "";
   const answerChoices = current?.options ?? [];
 
   const handleSelect = (value) => {
@@ -91,7 +91,9 @@ function TasteTest() {
     } else {
       // 모든 문항 완료 → 타입 계산 후 결과 페이지로 이동
       const mbtiType = calculateMBTI(updatedAnswers);
-      navigate('/result', { state: { answers: updatedAnswers, mbtiType } });
+      navigate(`/result/${mbtiType}`, {
+        state: { answers: updatedAnswers, mbtiType },
+      });
     }
   };
 
