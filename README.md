@@ -7,11 +7,11 @@
 
 ---
 
-## What it does
+## 프로젝트 요약
 
 - 질문에 답하면 점수 누적 → **TPT 타입** 산출
 - 결과 페이지에서 **타입 요약/설명/추천** 표시
-- (옵션) 타입 상세 페이지로 deeper dive
+- (옵션) 타입 상세 페이지로 세부 검사 진행
 
 ---
 
@@ -32,13 +32,32 @@
 - React
 - Vite
 - Tailwind CSS
-- (Optional) ESLint
+- React Router
+- ESLint
+- Prettier
 
 ---
 
 ## Architecture
 
 See `docs/ARCHITECTURE.md`.
+
+---
+
+## Routing Map
+
+- `/` (MainPage)
+- `/taste-test` (TasteTest)
+- `/taste-detail` (TasteDetailTest)
+- `/result` (ResultPage)
+- `/result/:type` (ResultPage)
+
+---
+
+## Data Files
+
+- `src/data/questions.js`: 질문/차원/역채점 정의
+- `src/data/mbtiDescriptions.js`: 타입 설명/추천 데이터
 
 ---
 
@@ -56,3 +75,16 @@ npm run build
 
 # preview build
 npm run preview
+```
+
+---
+
+## Contribution Commands
+
+```bash
+# lint
+npm run lint
+
+# format
+npm run format
+```
