@@ -1,6 +1,7 @@
-import React from 'react';
+import React from "react";
 
-const base = "inline-flex items-center justify-center rounded transition font-semibold";
+const base =
+  "inline-flex items-center justify-center rounded transition font-semibold";
 
 const variants = {
   primary: "bg-black text-white hover:bg-gray-800",
@@ -15,17 +16,16 @@ const sizes = {
 
 export default function Button({
   children,
-  variant = 'primary',
-  size = 'md',
-  className = '',
+  variant = "primary",
+  size = "md",
+  className = "",
   ...props
 }) {
-  const cls = `${base} ${variants[variant] || variants.primary} ${sizes[size] || sizes.md} ${className}`.trim();
+  const cls =
+    `${base} ${variants[variant] || variants.primary} ${sizes[size] || sizes.md} ${className}`.trim();
   return (
     <button className={cls} {...props}>
       {children}
     </button>
   );
 }
-
-
