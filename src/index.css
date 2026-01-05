@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -111,9 +110,13 @@ a:hover {
   }
 }
 
-html { font-size: var(--font-size); }
+html {
+  font-size: var(--font-size);
+}
 
-button { font-family: inherit; }
+button {
+  font-family: inherit;
+}
 
 @media (prefers-color-scheme: light) {
   :root {
