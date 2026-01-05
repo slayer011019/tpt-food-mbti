@@ -36,6 +36,12 @@
 
 ---
 
+## Architecture
+
+See `docs/ARCHITECTURE.md`.
+
+---
+
 ## Quick Start
 
 ```bash
