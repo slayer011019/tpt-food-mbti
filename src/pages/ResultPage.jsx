@@ -1,5 +1,5 @@
 // src/pages/ResultPage.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getTypeDescription } from "../data/mbtiDescriptions";
 import Card from "../components/Card";
@@ -9,6 +9,7 @@ const ResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const params = useParams();
+  const [copyMessage, setCopyMessage] = useState("");
 
   // TasteTest 또는 TasteDetailTest에서 전달된 값
   const mbtiTypeRaw = location.state?.mbtiType || params.type || null;
@@ -43,6 +44,19 @@ const ResultPage = () => {
     navigate("/taste-detail", {
       state: { baseType: mbtiType, baseAnswers: answers },
     });
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard API not available");
+      }
+      await navigator.clipboard.writeText(window.location.href);
+      setCopyMessage("링크가 복사되었습니다.");
+    } catch (error) {
+      console.error(error);
+      setCopyMessage("링크 복사에 실패했습니다.");
+    }
   };
 
   // 결과가 없을 때(직접 /result 접속) 폴백
@@ -121,6 +135,13 @@ const ResultPage = () => {
               </Button>
               <Button
                 type="button"
+                onClick={handleCopyLink}
+                className="bg-secondary text-secondary-foreground hover:bg-accent"
+              >
+                링크 복사
+              </Button>
+              <Button
+                type="button"
                 onClick={handleDetailTest}
                 className="bg-secondary text-secondary-foreground hover:bg-accent"
               >
@@ -134,6 +155,11 @@ const ResultPage = () => {
                 테스트 다시 하기
               </Button>
             </div>
+            {copyMessage ? (
+              <p className="text-sm text-muted-foreground mt-3 text-center">
+                {copyMessage}
+              </p>
+            ) : null}
           </Card>
         ) : (
           <p className="text-destructive mt-4">
