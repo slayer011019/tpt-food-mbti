@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculateMBTI } from "./mbti";
+import { calculateMBTI, NEUTRAL_CODE } from "./mbti";
 
 const buildQuestionBank = (overrides = {}) => [
   { dimension: "TB", reverse: false, ...overrides },
@@ -42,5 +42,20 @@ describe("calculateMBTI", () => {
     const questions = buildQuestionBank();
     const answers = Array(10).fill(5);
     expect(calculateMBTI(answers, questions)).toBe("TICDM");
+  });
+
+  it("falls back to neutral code for invalid answers input", () => {
+    expect(calculateMBTI(null, buildQuestionBank())).toBe(NEUTRAL_CODE);
+    expect(calculateMBTI(undefined, buildQuestionBank())).toBe(NEUTRAL_CODE);
+  });
+
+  it("normalizes out-of-range answer values", () => {
+    const questions = buildQuestionBank();
+    const answers = [9, -2, "x", 6, 0, NaN, null, undefined, 100, -100];
+    expect(calculateMBTI(answers, questions)).toBe("BPRSU");
+  });
+
+  it("falls back to neutral code when question bank is missing", () => {
+    expect(calculateMBTI(Array(10).fill(5), [])).toBe(NEUTRAL_CODE);
   });
 });

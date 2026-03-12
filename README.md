@@ -41,6 +41,9 @@
 ## Architecture
 
 See `docs/ARCHITECTURE.md`.
+Analytics event schema is documented in `docs/ANALYTICS.md`.
+Beta KPI guide: `docs/KPI_DASHBOARD.md`.
+Release QA checklist: `docs/QA_CHECKLIST.md`.
 
 ---
 
@@ -57,7 +60,8 @@ See `docs/ARCHITECTURE.md`.
 ## Data Files
 
 - `src/data/questions.js`: 질문/차원/역채점 정의
-- `src/data/mbtiDescriptions.js`: 타입 설명/추천 데이터
+- `src/data/mbtiDescriptions.js`: 타입 설명/추천 데이터 + 코드 유효성/완전성 검증 유틸
+- `src/utils/analytics.js`: 사용자 흐름 이벤트 추적 유틸
 
 ---
 
@@ -77,6 +81,12 @@ npm run build
 npm run preview
 ```
 
+## Environment
+
+```bash
+cp .env.example .env
+```
+
 ---
 
 ## Contribution Commands
@@ -84,6 +94,9 @@ npm run preview
 ```bash
 # lint
 npm run lint
+
+# unit tests
+npm run test:run
 
 # format
 npm run format

@@ -1,11 +1,17 @@
 import React from "react";
 
 const base =
-  "inline-flex items-center justify-center rounded transition font-semibold";
+  "inline-flex items-center justify-center rounded-button transition font-semibold";
 
 const variants = {
-  primary: "bg-black text-white hover:bg-gray-800",
-  secondary: "bg-white text-gray-900 border border-gray-200 hover:bg-gray-50",
+  primaryGradient:
+    "bg-gradient-to-r from-brand-start to-brand-end text-white shadow-softCard hover:opacity-95",
+  solidGreen: "bg-deepGreen text-white hover:opacity-95",
+  outline: "bg-white text-textGray border border-borderGray hover:bg-warmBg",
+  // Backward-compatible aliases
+  primary:
+    "bg-gradient-to-r from-brand-start to-brand-end text-white shadow-softCard hover:opacity-95",
+  secondary: "bg-white text-textGray border border-borderGray hover:bg-warmBg",
 };
 
 const sizes = {

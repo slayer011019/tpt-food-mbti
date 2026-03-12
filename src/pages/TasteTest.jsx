@@ -1,15 +1,30 @@
 // src/pages/TasteTest.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import questions from "../data/questions";
 import { useNavigate } from "react-router-dom";
 import Progress from "../components/Progress";
 import Button from "../components/Button";
 import { calculateMBTI } from "../utils/mbti";
+import { ANALYTICS_EVENTS, track } from "../utils/analytics";
 
 function TasteTest() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState([]); // 각 문항의 숫자 값(1~5)
   const navigate = useNavigate();
+  const questionList = questions.slice(0, 10);
+
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.TEST_START, {
+      flow: "basic",
+      question_count: questionList.length,
+    });
+  }, [questionList.length]);
+
+  useEffect(() => {
+    if (!questions || questions.length === 0) {
+      track(ANALYTICS_EVENTS.TEST_DATA_MISSING, { flow: "basic" });
+    }
+  }, []);
 
   // 널가드: 질문 배열이 비었을 때
   if (!questions || questions.length === 0) {
@@ -20,7 +35,6 @@ function TasteTest() {
     );
   }
 
-  const questionList = questions.slice(0, 10);
   const current = questionList[currentQuestionIndex];
   const questionText = current?.question ?? "";
   const answerChoices = current?.options ?? [];
@@ -28,12 +42,22 @@ function TasteTest() {
   const handleSelect = (value) => {
     const updatedAnswers = [...answers, value];
     setAnswers(updatedAnswers);
+    track(ANALYTICS_EVENTS.QUESTION_ANSWERED, {
+      flow: "basic",
+      question_index: currentQuestionIndex + 1,
+      value,
+    });
 
     if (currentQuestionIndex < questionList.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       // 모든 문항 완료 → 타입 계산 후 결과 페이지로 이동
       const mbtiType = calculateMBTI(updatedAnswers);
+      track(ANALYTICS_EVENTS.TEST_COMPLETE, {
+        flow: "basic",
+        mbti_type: mbtiType,
+        answer_count: updatedAnswers.length,
+      });
       navigate(`/result/${mbtiType}`, {
         state: { answers: updatedAnswers, mbtiType },
       });

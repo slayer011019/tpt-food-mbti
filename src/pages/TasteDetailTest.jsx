@@ -1,9 +1,10 @@
 // src/pages/TasteDetailTest.jsx
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Progress from "../components/Progress";
 import Button from "../components/Button";
 import questions from "../data/questions";
+import { ANALYTICS_EVENTS, track } from "../utils/analytics";
 
 const detailQuestions = questions.slice(10); // 하단 15문항만 사용
 
@@ -25,6 +26,39 @@ const RANK_LABELS = {
 };
 const rankOf = (avg) => (avg < 2.5 ? "LOW" : avg < 3.5 ? "MID" : "HIGH");
 
+const DIM_META = {
+  TB: {
+    icon: "🔥",
+    title: "맛 선호도",
+    subtitle: "자극적 vs 부드러운 취향",
+    fillClass: "from-brand-start to-brand-end",
+  },
+  IP: {
+    icon: "🗓️",
+    title: "식사 스타일",
+    subtitle: "즉흥형 vs 계획형",
+    fillClass: "from-deepGreen to-emerald-400",
+  },
+  CR: {
+    icon: "🎨",
+    title: "비주얼 성향",
+    subtitle: "감성형 vs 정통형",
+    fillClass: "from-sky-500 to-blue-400",
+  },
+  DS: {
+    icon: "🚀",
+    title: "도전 성향",
+    subtitle: "탐험형 vs 안정형",
+    fillClass: "from-orange-500 to-amber-400",
+  },
+  MU: {
+    icon: "✨",
+    title: "가치 기준",
+    subtitle: "무드형 vs 실용형",
+    fillClass: "from-violet-500 to-fuchsia-400",
+  },
+};
+
 export default function TasteDetailTest() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,6 +68,14 @@ export default function TasteDetailTest() {
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState([]); // 1~5 값 저장
   const [done, setDone] = useState(false); // ✅ 결과 표시 모드
+
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.DETAIL_START, {
+      flow: "detail",
+      question_count: detailQuestions.length,
+      has_base_type: Boolean(baseType),
+    });
+  }, [baseType]);
 
   // 완료 후 세부 점수 계산
   const { detailCode, details } = useMemo(() => {
@@ -66,16 +108,31 @@ export default function TasteDetailTest() {
   const progress = ((current + 1) / detailQuestions.length) * 100;
   const q = detailQuestions[current];
 
+  useEffect(() => {
+    if (detailQuestions.length === 0) {
+      track(ANALYTICS_EVENTS.TEST_DATA_MISSING, { flow: "detail" });
+    }
+  }, []);
+
   const select = (value) => {
     if (done) return;
     const next = [...answers, value];
     setAnswers(next);
+    track(ANALYTICS_EVENTS.QUESTION_ANSWERED, {
+      flow: "detail",
+      question_index: current + 1,
+      value,
+    });
 
     if (current < detailQuestions.length - 1) {
       setCurrent(current + 1);
     } else {
       // ✅ 완료: 결과 표시 모드로 전환
       setDone(true);
+      track(ANALYTICS_EVENTS.DETAIL_COMPLETE, {
+        flow: "detail",
+        answer_count: next.length,
+      });
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -89,6 +146,11 @@ export default function TasteDetailTest() {
 
     try {
       if (navigator.share) {
+        track(ANALYTICS_EVENTS.SHARE_CLICK, {
+          flow: "detail",
+          method: "native_share",
+          mbti_type: detailCode || "unknown",
+        });
         await navigator.share({
           title: "입맛 MBTI 세부 결과",
           text: `내 서브 지표\n${textLines}`,
@@ -104,6 +166,10 @@ export default function TasteDetailTest() {
 
   // 메인 결과로 돌아가기 (baseType 없으면 홈으로)
   const goBackToResult = () => {
+    track(ANALYTICS_EVENTS.RESULT_BACK_CLICK, {
+      flow: "detail",
+      has_base_type: Boolean(baseType),
+    });
     if (baseType) {
       navigate("/result", {
         state: { mbtiType: baseType, answers: baseAnswers },
@@ -113,9 +179,39 @@ export default function TasteDetailTest() {
     }
   };
 
+  const goHomeWithTrack = (source) => {
+    track(ANALYTICS_EVENTS.RESTART_CLICK, {
+      flow: "detail",
+      source,
+    });
+    navigate("/");
+  };
+
+  if (detailQuestions.length === 0) {
+    return (
+      <div className="min-h-screen bg-background text-foreground px-4 py-10">
+        <div className="max-w-2xl mx-auto p-6 bg-card text-card-foreground rounded-lg border border-border shadow-card">
+          <h1 className="text-2xl font-medium mb-2">
+            세부 결과를 불러올 수 없습니다
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            질문 데이터가 준비되지 않았습니다.
+          </p>
+          <Button
+            type="button"
+            onClick={() => goHomeWithTrack("detail_data_missing")}
+            className="border border-border bg-surface text-foreground hover:bg-muted"
+          >
+            처음으로
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background text-foreground px-4 py-10">
-      <div className="max-w-2xl mx-auto p-6 bg-card text-card-foreground rounded-lg border border-border shadow-card">
+    <div className="min-h-screen bg-warmBg text-foreground px-4 py-10">
+      <div className="max-w-3xl mx-auto p-6 bg-card text-card-foreground rounded-card border border-borderGray shadow-softCard">
         {!done ? (
           <>
             <h1 className="text-2xl font-medium mb-3">
@@ -143,12 +239,14 @@ export default function TasteDetailTest() {
           </>
         ) : (
           <>
-            <h1 className="text-2xl font-medium mb-2">✅ 세부 결과</h1>
-            <p className="text-muted-foreground mb-6">
+            <h1 className="text-2xl font-bold mb-2 text-gray-900">
+              ✅ 세부 분석 결과
+            </h1>
+            <p className="text-textGray mb-6">
               {baseType ? (
                 <>
                   메인 유형{" "}
-                  <span className="font-medium text-foreground">
+                  <span className="font-semibold text-gray-900">
                     {baseType}
                   </span>{" "}
                   기준으로 서브 지표를 보여드려요.
@@ -159,55 +257,55 @@ export default function TasteDetailTest() {
             </p>
 
             {/* 요약 코드(세부 15문항만으로 계산한 보조 코드) */}
-            <div className="mb-4">
-              <span className="text-sm text-muted-foreground">보조 코드</span>
-              <div className="text-xl font-medium">{detailCode}</div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-pill bg-gray-100 px-4 py-2">
+              <span className="text-sm text-textGray">보조 코드</span>
+              <div className="text-lg font-bold tracking-wide text-gray-900">
+                {detailCode}
+              </div>
             </div>
 
             {/* 차원별 리스트 */}
-            <ul className="divide-y divide-border">
+            <ul className="space-y-4">
               {DIM_ORDER.map((dim) => {
                 const d = details[dim];
-                const icon =
-                  dim === "TB"
-                    ? "🔥"
-                    : dim === "IP"
-                      ? "🎲"
-                      : dim === "CR"
-                        ? "📸"
-                        : dim === "DS"
-                          ? "🚀"
-                          : "✨";
-
-                const name =
-                  dim === "TB"
-                    ? "Taste (T/B)"
-                    : dim === "IP"
-                      ? "Planning (I/P)"
-                      : dim === "CR"
-                        ? "Style (C/R)"
-                        : dim === "DS"
-                          ? "Venture (D/S)"
-                          : "Culture (M/U)";
+                const meta = DIM_META[dim];
+                const scorePercent = (d.avg / 5) * 100;
+                const level = Math.max(1, Math.min(5, Math.round(d.avg)));
 
                 return (
                   <li
                     key={dim}
-                    className="py-4 flex items-start justify-between gap-4"
+                    className="rounded-card border border-borderGray bg-white p-4 sm:p-5"
                   >
-                    <div>
-                      <div className="font-medium">
-                        {icon} {name}
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div>
+                        <div className="font-semibold text-gray-900 flex items-center gap-2">
+                          <span className="text-xl" aria-hidden="true">
+                            {meta.icon}
+                          </span>
+                          <span>{meta.title}</span>
+                        </div>
+                        <div className="text-sm text-textGray mt-1">
+                          {meta.subtitle}
+                        </div>
+                        <div className="text-sm text-textGray mt-1">
+                          {d.label}
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {d.label}
+                      <div className="rounded-pill bg-gray-100 px-3 py-1.5 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                        {d.avg}점
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-medium">{d.avg}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        {d.rank}
-                      </div>
+
+                    <Progress
+                      value={scorePercent}
+                      trackClassName="h-2.5 bg-gray-200"
+                      fillClassName={meta.fillClass}
+                    />
+                    <div className="mt-2 flex items-center justify-between text-xs text-textGray">
+                      <span>약함</span>
+                      <span>{`Level ${level}`}</span>
+                      <span>강함</span>
                     </div>
                   </li>
                 );
@@ -219,7 +317,7 @@ export default function TasteDetailTest() {
               <Button
                 type="button"
                 onClick={handleShare}
-                className="bg-primary text-primary-foreground hover:opacity-90"
+                variant="solidGreen"
               >
                 결과 공유하기
               </Button>
@@ -227,15 +325,15 @@ export default function TasteDetailTest() {
               <Button
                 type="button"
                 onClick={goBackToResult}
-                className="bg-secondary text-secondary-foreground hover:bg-accent"
+                variant="primaryGradient"
               >
                 메인 결과로 돌아가기
               </Button>
 
               <Button
                 type="button"
-                onClick={() => navigate("/")}
-                className="border border-border bg-surface text-foreground hover:bg-muted"
+                onClick={() => goHomeWithTrack("detail_result")}
+                variant="outline"
               >
                 처음으로
               </Button>

@@ -1,5 +1,6 @@
-import React from "react";
-import { Link, NavLink } from "react-router-dom";
+import React, { useEffect, useRef } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { trackPageView } from "../utils/analytics";
 
 const navLinkClass = ({ isActive }) =>
   `px-3 py-2 rounded text-sm font-medium ${
@@ -7,6 +8,16 @@ const navLinkClass = ({ isActive }) =>
   }`;
 
 export default function AppLayout({ children }) {
+  const location = useLocation();
+  const lastTrackedPathRef = useRef("");
+
+  useEffect(() => {
+    const key = `${location.pathname}${location.search}`;
+    if (lastTrackedPathRef.current === key) return;
+    lastTrackedPathRef.current = key;
+    trackPageView();
+  }, [location.pathname, location.search]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b" style={{ borderColor: "var(--border)" }}>

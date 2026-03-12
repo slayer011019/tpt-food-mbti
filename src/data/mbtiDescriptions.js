@@ -1,3 +1,11 @@
+export const TYPE_DIMENSIONS = [
+  ["T", "B"],
+  ["I", "P"],
+  ["C", "R"],
+  ["D", "S"],
+  ["M", "U"],
+];
+
 const typeDescriptions = {
   // 1
   TICDM: {
@@ -233,15 +241,42 @@ const typeDescriptions = {
   },
 };
 
-export default typeDescriptions;
+const UNKNOWN_PROFILE = {
+  title: "알 수 없는 타입",
+  description: "이 타입에 대한 정보가 없습니다.",
+  recommendations: [],
+};
+
+export const buildAllTypeCodes = () =>
+  TYPE_DIMENSIONS.reduce(
+    (acc, [a, b]) => acc.flatMap((prefix) => [`${prefix}${a}`, `${prefix}${b}`]),
+    [""],
+  );
+
+export const ALL_TYPE_CODES = buildAllTypeCodes();
+
+export const isValidTypeCode = (type) =>
+  typeof type === "string" &&
+  type.length === 5 &&
+  ALL_TYPE_CODES.includes(type.toUpperCase());
 
 export const getTypeDescription = (type) => {
-  // calculateMBTI에서 넘어오는 type은 이미 5자리 대문자 조합이므로, toUpperCase()는 선택사항
-  return (
-    typeDescriptions[type] || {
-      title: "알 수 없는 타입",
-      description: "이 타입에 대한 정보가 없습니다.",
-      recommendations: [],
-    }
-  );
+  if (!isValidTypeCode(type)) return UNKNOWN_PROFILE;
+  return typeDescriptions[type.toUpperCase()] || UNKNOWN_PROFILE;
 };
+
+export const validateTypeDescriptions = () => {
+  const existing = Object.keys(typeDescriptions).sort();
+  const expected = [...ALL_TYPE_CODES].sort();
+  const missing = expected.filter((code) => !existing.includes(code));
+  const extras = existing.filter((code) => !expected.includes(code));
+
+  return {
+    isValid: missing.length === 0 && extras.length === 0,
+    missing,
+    extras,
+    count: existing.length,
+  };
+};
+
+export default Object.freeze(typeDescriptions);
