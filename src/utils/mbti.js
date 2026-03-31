@@ -1,4 +1,5 @@
 import questions from "../data/questions";
+import { BASIC_QUESTION_COUNT, TOTAL_QUESTION_COUNT } from "../data/questions";
 
 export const NEUTRAL_CODE = "BPRSU";
 
@@ -12,6 +13,17 @@ const GROUPS = {
   MU: { high: "M", low: "U" },
 };
 
+export const DETAIL_DIMENSIONS = ["TB", "IP", "CR", "DS", "MU"];
+export const DETAIL_RANK_LABELS = {
+  TB: { LOW: "순한맛 지킴이", MID: "균형 잡힌 입맛", HIGH: "매운맛 덕후" },
+  IP: { LOW: "계획파 맛집러", MID: "상황 따라", HIGH: "즉흥파 모험러" },
+  CR: { LOW: "투박한 전통파", MID: "적당히 신경", HIGH: "감성샷 집착러" },
+  DS: { LOW: "안정적 보수파", MID: "소소한 모험러", HIGH: "신상 헌터" },
+  MU: { LOW: "실속러", MID: "밸런서", HIGH: "분위기 감성러" },
+};
+
+const rankOf = (avg) => (avg < 2.5 ? "LOW" : avg < 3.5 ? "MID" : "HIGH");
+
 const normalizeAnswer = (value) => {
   const num = Number(value);
   if (!Number.isFinite(num)) return 3;
@@ -21,13 +33,17 @@ const normalizeAnswer = (value) => {
 
 export const calculateMBTI = (answersArr, questionBank = questions) => {
   if (!Array.isArray(answersArr)) return NEUTRAL_CODE;
-  if (!Array.isArray(questionBank) || questionBank.length < 10) return NEUTRAL_CODE;
+  if (!Array.isArray(questionBank) || questionBank.length < BASIC_QUESTION_COUNT) {
+    return NEUTRAL_CODE;
+  }
 
-  const normalizedAnswers = answersArr.slice(0, 10).map(normalizeAnswer);
-  while (normalizedAnswers.length < 10) normalizedAnswers.push(3);
+  const normalizedAnswers = answersArr
+    .slice(0, BASIC_QUESTION_COUNT)
+    .map(normalizeAnswer);
+  while (normalizedAnswers.length < BASIC_QUESTION_COUNT) normalizedAnswers.push(3);
 
   // 1) dimension/reverse 메타가 있는 경우(권장)
-  const questionList = questionBank.slice(0, 10);
+  const questionList = questionBank.slice(0, BASIC_QUESTION_COUNT);
   const hasMeta = questionList.every(
     (q) => typeof q.dimension === "string" && typeof q.reverse === "boolean",
   );
@@ -74,4 +90,52 @@ export const calculateMBTI = (answersArr, questionBank = questions) => {
     else mbtiCode += group.low; // avg == 3: deterministic tie-breaker
   }
   return mbtiCode;
+};
+
+export const calculateDetailProfile = (
+  answersArr,
+  {
+    questionBank = questions,
+    baseType = null,
+  } = {},
+) => {
+  if (!Array.isArray(answersArr)) {
+    return { detailCode: NEUTRAL_CODE, details: null };
+  }
+
+  const normalizedAnswers = answersArr
+    .slice(0, TOTAL_QUESTION_COUNT)
+    .map(normalizeAnswer);
+  while (normalizedAnswers.length < TOTAL_QUESTION_COUNT) normalizedAnswers.push(3);
+
+  const detailQuestions = questionBank.slice(BASIC_QUESTION_COUNT);
+  const buckets = { TB: [], IP: [], CR: [], DS: [], MU: [] };
+
+  normalizedAnswers.slice(BASIC_QUESTION_COUNT).forEach((raw, index) => {
+    const q = detailQuestions[index];
+    if (!q) return;
+    const value = q.reverse ? 6 - raw : raw;
+    if (buckets[q.dimension]) buckets[q.dimension].push(value);
+  });
+
+  const fallbackLetters = (baseType || NEUTRAL_CODE).split("");
+  const details = {};
+
+  DETAIL_DIMENSIONS.forEach((dim, index) => {
+    const arr = buckets[dim];
+    const avg = arr.length
+      ? +(arr.reduce((sum, value) => sum + value, 0) / arr.length).toFixed(2)
+      : 3.0;
+    const rank = rankOf(avg);
+    const label = DETAIL_RANK_LABELS[dim][rank];
+
+    let letter = fallbackLetters[index];
+    if (avg > 3) letter = GROUPS[dim].high;
+    else if (avg < 3) letter = GROUPS[dim].low;
+
+    details[dim] = { avg, rank, label, letter };
+  });
+
+  const detailCode = DETAIL_DIMENSIONS.map((dim) => details[dim].letter).join("");
+  return { detailCode, details };
 };

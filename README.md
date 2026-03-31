@@ -1,7 +1,7 @@
 # TPT: Taste Personality Test (Food MBTI)
 
-입맛 성향을 빠르게 분류하고, 유형별 추천을 보여주는 **TPT(입맛 성격 테스트)** 웹앱.  
-짧은 질문 흐름으로 사용자의 취향 타입을 만들고, 결과 화면에서 타입 설명 + 추천을 제공해요.
+입맛 성향을 25문항으로 분석해 하나의 **종합 리포트**로 보여주는 TPT 웹앱입니다.  
+한 번의 검사로 타입 코드, 유형 해석, 생활형 성향, 5가지 축 세부 점수까지 확인할 수 있습니다.
 
 > ⚠️ 이 테스트는 재미/프로덕트 실험용이며 의학적·영양학적 진단 목적이 아닙니다.
 
@@ -9,9 +9,9 @@
 
 ## 프로젝트 요약
 
-- 질문에 답하면 점수 누적 → **TPT 타입** 산출
-- 결과 페이지에서 **타입 요약/설명/추천** 표시
-- (옵션) 타입 상세 페이지로 세부 검사 진행
+- 25문항 검사 완료 시 **TPT 5자리 타입 코드** 산출
+- 결과 페이지에서 **종합 리포트** 형태로 해석 제공
+- 5가지 축의 세부 점수와 생활형 해석까지 한 번에 표시
 
 ---
 
@@ -51,7 +51,6 @@ Release QA checklist: `docs/QA_CHECKLIST.md`.
 
 - `/` (MainPage)
 - `/taste-test` (TasteTest)
-- `/taste-detail` (TasteDetailTest)
 - `/result` (ResultPage)
 - `/result/:type` (ResultPage)
 
@@ -59,8 +58,9 @@ Release QA checklist: `docs/QA_CHECKLIST.md`.
 
 ## Data Files
 
-- `src/data/questions.js`: 질문/차원/역채점 정의
-- `src/data/mbtiDescriptions.js`: 타입 설명/추천 데이터 + 코드 유효성/완전성 검증 유틸
+- `src/data/questions.js`: 25문항 질문/차원/역채점 정의
+- `src/data/mbtiDescriptions.js`: 타입명, 설명, 리포트 문구 생성 유틸
+- `src/utils/mbti.js`: 타입 계산과 세부 축 점수 계산 유틸
 - `src/utils/analytics.js`: 사용자 흐름 이벤트 추적 유틸
 
 ---

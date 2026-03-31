@@ -3,7 +3,6 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import MainPage from "./pages/MainPage.jsx";
 import TasteTest from "./pages/TasteTest.jsx";
-import TasteDetailTest from "./pages/TasteDetailTest.jsx";
 import ResultPage from "./pages/ResultPage.jsx";
 import AppLayout from "./layouts/AppLayout.jsx";
 
@@ -13,7 +12,9 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/taste-test" element={<TasteTest />} />
-        <Route path="/taste-detail" element={<TasteDetailTest />} />
+        <Route path="/taste-detail" element={<Navigate to="/taste-test" replace />} />
+        <Route path="/big-five-test" element={<Navigate to="/" replace />} />
+        <Route path="/validation-dashboard" element={<Navigate to="/" replace />} />
         <Route path="/result" element={<ResultPage />} />
         <Route path="/result/:type" element={<ResultPage />} />
         <Route path="/MainPage" element={<Navigate to="/" replace />} />

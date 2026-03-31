@@ -1,5 +1,6 @@
 const SESSION_KEY = "tpt_session_id";
 const GA_INIT_FLAG = "__tpt_ga_initialized";
+const ANALYTICS_CONSENT_KEY = "tpt_analytics_consent";
 
 export const ANALYTICS_EVENTS = Object.freeze({
   PAGE_VIEW: "page_view",
@@ -12,11 +13,8 @@ export const ANALYTICS_EVENTS = Object.freeze({
   TEST_COMPLETE: "tpt_test_complete",
   RESULT_VIEW: "tpt_result_view",
   SHARE_CLICK: "tpt_share_click",
-  DETAIL_START_CLICK: "tpt_detail_start_click",
-  DETAIL_START: "tpt_detail_start",
-  DETAIL_COMPLETE: "tpt_detail_complete",
-  RESULT_BACK_CLICK: "tpt_result_back_click",
   RESTART_CLICK: "tpt_restart_click",
+  ANALYTICS_CONSENT_UPDATED: "tpt_analytics_consent_updated",
 });
 
 const EVENT_PARAM_SCHEMA = Object.freeze({
@@ -36,14 +34,40 @@ const EVENT_PARAM_SCHEMA = Object.freeze({
     "mbti_type",
   ],
   [ANALYTICS_EVENTS.SHARE_CLICK]: ["flow", "method", "mbti_type"],
-  [ANALYTICS_EVENTS.DETAIL_START_CLICK]: ["flow", "mbti_type"],
-  [ANALYTICS_EVENTS.DETAIL_START]: ["flow", "question_count", "has_base_type"],
-  [ANALYTICS_EVENTS.DETAIL_COMPLETE]: ["flow", "answer_count"],
-  [ANALYTICS_EVENTS.RESULT_BACK_CLICK]: ["flow", "has_base_type"],
   [ANALYTICS_EVENTS.RESTART_CLICK]: ["flow", "source"],
+  [ANALYTICS_EVENTS.ANALYTICS_CONSENT_UPDATED]: ["consent"],
 });
 
 const getGlobal = () => (typeof window !== "undefined" ? window : undefined);
+
+const readConsentValue = () => {
+  const win = getGlobal();
+  if (!win) return null;
+  let raw = null;
+  try {
+    raw = win.localStorage.getItem(ANALYTICS_CONSENT_KEY);
+  } catch {
+    return false;
+  }
+  if (raw === "granted") return true;
+  if (raw === "denied") return false;
+  return null;
+};
+
+export const getAnalyticsConsent = () => readConsentValue();
+
+export const setAnalyticsConsent = (granted) => {
+  const win = getGlobal();
+  if (!win) return;
+  try {
+    win.localStorage.setItem(
+      ANALYTICS_CONSENT_KEY,
+      granted ? "granted" : "denied",
+    );
+  } catch {
+    // no-op: if storage is unavailable, consent cannot be persisted.
+  }
+};
 
 const isValidGaMeasurementId = (value) =>
   typeof value === "string" && /^G-[A-Z0-9]+$/i.test(value.trim());
@@ -51,6 +75,7 @@ const isValidGaMeasurementId = (value) =>
 export const initAnalytics = (measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID) => {
   const win = getGlobal();
   if (!win) return false;
+  if (readConsentValue() !== true) return false;
   if (win[GA_INIT_FLAG]) return true;
 
   const id = typeof measurementId === "string" ? measurementId.trim() : "";
@@ -90,13 +115,17 @@ export const getSessionId = () => {
   const win = getGlobal();
   if (!win) return "server";
 
-  const storage = win.sessionStorage;
-  const existing = storage.getItem(SESSION_KEY);
-  if (existing) return existing;
+  try {
+    const storage = win.sessionStorage;
+    const existing = storage.getItem(SESSION_KEY);
+    if (existing) return existing;
 
-  const next = `tpt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  storage.setItem(SESSION_KEY, next);
-  return next;
+    const next = `tpt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    storage.setItem(SESSION_KEY, next);
+    return next;
+  } catch {
+    return `tpt-volatile-${Date.now()}`;
+  }
 };
 
 const sanitizePayload = (eventName, payload) => {
@@ -112,6 +141,7 @@ export const track = (eventName, payload = {}) => {
 
   const win = getGlobal();
   if (!win) return;
+  if (readConsentValue() !== true) return;
 
   const eventPayload = {
     ...sanitizePayload(eventName, payload),

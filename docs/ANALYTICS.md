@@ -27,7 +27,7 @@ TPT 베타 운영용 이벤트 스키마입니다.
 
 4. `tpt_test_start_click`
 - Trigger: 메인에서 테스트 시작 버튼 클릭
-- Params: `flow` (`basic` | `detail`)
+- Params: `flow` (`basic`)
 
 5. `tpt_test_start`
 - Trigger: 기본 테스트 페이지 로드
@@ -50,27 +50,11 @@ TPT 베타 운영용 이벤트 스키마입니다.
 - Params: `has_type`, `is_valid_type`, `has_answer_state`, `source`, `mbti_type`
 
 10. `tpt_share_click`
-- Trigger: 공유/링크복사/상세결과 공유 클릭
+- Trigger: 결과 리포트 공유 클릭
 - Params: `flow`, `method`, `mbti_type`
 
-11. `tpt_detail_start_click`
-- Trigger: 결과 페이지에서 세부 검사 시작 클릭
-- Params: `flow`, `mbti_type`
-
-12. `tpt_detail_start`
-- Trigger: 세부 검사 페이지 로드
-- Params: `flow`, `question_count`, `has_base_type`
-
-13. `tpt_detail_complete`
-- Trigger: 세부 검사 완료
-- Params: `flow`, `answer_count`
-
-14. `tpt_result_back_click`
-- Trigger: 세부 검사에서 메인 결과로 복귀 클릭
-- Params: `flow`, `has_base_type`
-
-15. `tpt_restart_click`
-- Trigger: 결과/세부검사에서 처음으로(재시작) 클릭
+11. `tpt_restart_click`
+- Trigger: 결과 리포트에서 처음으로(재시작) 클릭
 - Params: `flow`, `source`
 
 ## GA4 Setup

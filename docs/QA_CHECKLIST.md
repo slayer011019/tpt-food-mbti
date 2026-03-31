@@ -3,23 +3,21 @@
 ## Scope
 
 - 디바이스: iOS Safari, Android Chrome, Desktop Chrome
-- 경로: `/`, `/taste-test`, `/result/:type`, `/taste-detail`
+- 경로: `/`, `/taste-test`, `/result/:type`
 
 ## Functional
 
-1. 기본 테스트 10문항 완료 시 결과 페이지로 이동
-2. 결과 페이지에서 공유/링크복사 동작
-3. 결과 페이지에서 세부 검사 진입 가능
-4. 세부 검사 15문항 완료 시 보조 코드/차원 점수 표시
-5. 세부 검사에서 메인 결과 복귀 가능
-6. 직접 URL 진입 `/result/TICDM` 정상 표시
-7. 잘못된 URL 진입 `/result/ABCDE` 폴백 표시
+1. 종합 검사 25문항 완료 시 결과 페이지로 이동
+2. 결과 페이지에서 공유 동작
+3. 결과 페이지에서 타입 해석과 세부 점수 리포트가 함께 표시
+4. 직접 URL 진입 `/result/TICDM` 정상 표시
+5. 잘못된 URL 진입 `/result/ABCDE` 폴백 표시
 
 ## Analytics
 
 1. 메인 진입 시 `page_view`, `tpt_main_view` 발생
-2. 기본 테스트 시작 시 `tpt_test_start` 발생
-3. 10문항 응답 시 `tpt_question_answered`가 10회 발생
+2. 종합 검사 시작 시 `tpt_test_start` 발생
+3. 25문항 응답 시 `tpt_question_answered`가 25회 발생
 4. 완료 시 `tpt_test_complete` 발생
 5. 결과 진입 시 `tpt_result_view` 발생 (`is_valid_type=true`)
 6. 공유/복사 클릭 시 `tpt_share_click` 발생

@@ -4,28 +4,27 @@
 
 - `/` -> `MainPage` (`src/pages/MainPage.jsx`)
 - `/taste-test` -> `TasteTest` (`src/pages/TasteTest.jsx`)
-- `/taste-detail` -> `TasteDetailTest` (`src/pages/TasteDetailTest.jsx`)
 - `/result` -> `ResultPage` (`src/pages/ResultPage.jsx`)
 - `/result/:type` -> `ResultPage` (`src/pages/ResultPage.jsx`)
 
 ## Pages and Components
 
 - `MainPage`: entry screen and navigation to tests.
-- `TasteTest`: 10-question MBTI-style test flow and result navigation.
-- `TasteDetailTest`: follow-up detail test (sub scores).
-- `ResultPage`: renders result content and share actions.
+- `TasteTest`: 25-question comprehensive test flow and result navigation.
+- `ResultPage`: comprehensive report page with type summary, lifestyle interpretation, and detail scores.
 - Shared UI components in `src/components/`: `Button`, `Card`, `Progress`.
 - Global layout wrapper: `src/layouts/AppLayout.jsx`.
 
 ## MBTI Logic
 
-- Computation lives in `calculateMBTI` within `src/utils/mbti.js`.
+- Type computation lives in `calculateMBTI` within `src/utils/mbti.js`.
+- Detail scoring for the comprehensive report lives in `calculateDetailProfile` within `src/utils/mbti.js`.
 - Result lookup uses `getTypeDescription` in `src/data/mbtiDescriptions.js`.
 
 ## Data Files
 
 - Questions: `src/data/questions.js` (includes dimension and reverse scoring).
-- Type descriptions: `src/data/mbtiDescriptions.js` (title, description, recommendations).
+- Type descriptions: `src/data/mbtiDescriptions.js` (title, description, report copy).
 - Type validation helpers: `isValidTypeCode`, `validateTypeDescriptions`.
 
 ## Analytics
@@ -35,5 +34,4 @@
 - Core events:
   - `tpt_main_view`
   - `tpt_test_start`, `tpt_question_answered`, `tpt_test_complete`
-  - `tpt_result_view`, `tpt_share_click`, `tpt_detail_start_click`
-  - `tpt_detail_start`, `tpt_detail_complete`, `tpt_result_back_click`
+  - `tpt_result_view`, `tpt_share_click`, `tpt_restart_click`
